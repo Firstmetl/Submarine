@@ -2,9 +2,10 @@ package Submarine;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 import java.util.Random;
 
-public abstract class SeaObject {
+public abstract class SeaObject implements Serializable {
 
     public static final int LIVE = 0;
     public static final int DEAD = 1;

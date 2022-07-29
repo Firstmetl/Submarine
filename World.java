@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.*;
 import java.util.*;
 import java.util.Timer;
 
@@ -165,14 +166,38 @@ public class World  extends JPanel{
 
     /** 启动程序的运行 */
     public void action(){
-        System.out.println("```````");
+        //读取存档
+        File file = new File("game.sav");
+        if (file.exists()){
+            int i = JOptionPane.showConfirmDialog(World.this, "是否读取存档？");
+            if (i == JOptionPane.YES_OPTION){
+                try {
+                    FileInputStream fis = new FileInputStream("game.sav");
+                    ObjectInputStream ois = new ObjectInputStream(fis);
+                    gameInfo gameInfo = (Submarine.gameInfo) ois.readObject();
+                    ship = gameInfo.getShip();
+                    submarines = gameInfo.getSubmarines();
+                    mines = gameInfo.getMines();
+                    bombs =gameInfo.getBombs();
+                    subEnterIndex = gameInfo.getSubEnterIndex();
+                    mineEnterIndex = gameInfo.getMineEnterIndex();
+                    score = gameInfo.getScore();
+                    ois.close();
+                } catch (FileNotFoundException fileNotFoundException) {
+                    fileNotFoundException.printStackTrace();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         //事件监听
         KeyAdapter k = new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
 
                 if (e.getKeyCode()==KeyEvent.VK_SPACE){
-                    System.out.println("World.keyPressed");
                     Bomb obj = ship.shootBomb();
                     bombs = Arrays.copyOf(bombs,bombs.length+1);
                     bombs[bombs.length-1] = obj;
@@ -195,6 +220,24 @@ public class World  extends JPanel{
                         state=RUNNING;
                     }
                 }
+                if (e.getKeyCode()==KeyEvent.VK_S){
+                    state = PAUSE_GAME;
+                    int r= JOptionPane.showConfirmDialog(World.this,"是否存档当前进度？");
+                    if (r==JOptionPane.YES_OPTION){
+                        gameInfo gameInfo = new gameInfo(ship,submarines,mines,bombs,subEnterIndex,mineEnterIndex,score);
+                        try {
+                            FileOutputStream fos = new FileOutputStream("game.sav");
+                            ObjectOutputStream oos = new ObjectOutputStream(fos);
+                            oos.writeObject(gameInfo);
+                            oos.close();
+                        } catch (FileNotFoundException fileNotFoundException) {
+                            fileNotFoundException.printStackTrace();
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+                    }
+                    state = RUNNING;
+                }
             }
         };
         this.addKeyListener(k);
@@ -215,7 +258,6 @@ public class World  extends JPanel{
                 }
             }
         }, interval, interval);
-        System.out.println("---");
     }
 
     public void paint(Graphics g){
@@ -256,11 +298,13 @@ public class World  extends JPanel{
         JMenuItem jm1 = new JMenuItem("开始新游戏");
         JMenuItem jm2 = new JMenuItem("暂停游戏");
         JMenuItem jm3 = new JMenuItem("继续游戏");
+        //JMenuItem jmm = new JMenuItem("读取存档");
         JMenuItem jm4 = new JMenuItem("退出");
         j1.add(jm1);
         j1.add(jm2);
         j1.add(jm3);
         j1.add(jm4);
+        //j1.add(jmm);
         JMenuItem j2m1 = new JMenuItem("系统平台风格");
         JMenuItem j2m2 = new JMenuItem("metal风格");
         JMenuItem j2m3 = new JMenuItem("motif风格");
@@ -296,6 +340,33 @@ public class World  extends JPanel{
                 world.again();
             }
         });
+        /*jmm.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                File file = new File("game.sav");
+                if (file.exists()){
+                    try {
+                        FileInputStream fis = new FileInputStream(file);
+                        ObjectInputStream ois = new ObjectInputStream(fis);
+                        gameInfo gameInfo = (Submarine.gameInfo) ois.readObject();
+*//*                        ship = gameInfo.getShip();
+                        submarines = gameInfo.getSubmarines();
+                        mines = gameInfo.getMines();
+                        bombs =gameInfo.getBombs();
+                        subEnterIndex = gameInfo.getSubEnterIndex();
+                        mineEnterIndex = gameInfo.getMineEnterIndex();
+                        score = gameInfo.getScore();*//*
+                        ois.close();
+                    } catch (FileNotFoundException fileNotFoundException) {
+                        fileNotFoundException.printStackTrace();
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    } catch (ClassNotFoundException classNotFoundException) {
+                        classNotFoundException.printStackTrace();
+                    }
+                }
+            }
+        });*/
         jm4.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
